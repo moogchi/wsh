@@ -1,6 +1,7 @@
 // shell.rs
 // main shell loop
 
+use crate::commands;
 use crate::syscall;
 
 pub fn run() {
@@ -21,8 +22,6 @@ pub fn run() {
         let input = &buf[..n as usize];
         let cmd = core::str::from_utf8(input).unwrap_or("").trim();
 
-        syscall::print("got command: ");
-        syscall::print(cmd);
-        syscall::print("\n");
+        commands::run(cmd);
     }
 }
