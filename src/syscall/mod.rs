@@ -1,5 +1,6 @@
 // syscall/mod.rs
-
+#![allow(dead_code)]
+#![allow(unused_imports)]
 // use macro
 #[macro_use]
 pub mod macros;

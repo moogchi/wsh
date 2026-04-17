@@ -1,4 +1,5 @@
 //const
+pub const SYS_READ: u64 = 0;
 pub const SYS_WRITE: u64 = 1;
 pub const SYS_CLOSE: u64 = 3;
 pub const SYS_SOCKET: u64 = 41;
