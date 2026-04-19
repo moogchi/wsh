@@ -2,22 +2,52 @@
 #![allow(dead_code)]
 
 use crate::syscall;
+use crate::syscall::fs::*;
 use crate::syscall::proc::*;
 
 pub fn run(cmd: &str) {
-    // match string to commands
-    match cmd {
+    // change cmd into a mutable vector
+    let parts: Vec<&str> = cmd.split_whitespace().collect();
+    if parts.is_empty() {
+        return;
+    }
+
+    match parts[0] {
         "exit" => {
             syscall::exit_group(0);
         }
-        "" => { // do nothing        
+        "cd" => {
+            let target = if parts.len() < 2 {
+                "/home/sihoon\0".as_bytes().to_vec()
+            } else {
+                let mut p = parts[1].as_bytes().to_vec();
+                p.push(0);
+                p
+            };
+            chdir(target.as_ptr());
+        }
+        "pwd" => {
+            let mut pwd_buf = [0u8; 256];
+            syscall::getcwd(&mut pwd_buf);
+            let pwd = unsafe {
+                core::ffi::CStr::from_ptr(pwd_buf.as_ptr() as *const i8)
+                    .to_str()
+                    .unwrap_or("?")
+            };
+            syscall::print(pwd);
+            syscall::print("\n");
+        }
+        "echo" => {
+            let echoed = parts[1..].join(" ");
+            syscall::print(&echoed);
+            syscall::print("\n");
         }
         _ => {
-            // change cmd into a mutable vector
-            let parts: Vec<&str> = cmd.split_whitespace().collect();
             let full_path = format!("/bin/{}", parts[0]);
             let mut path = full_path.as_bytes().to_vec();
             path.push(0);
+
+            // match string to commands
 
             // null-terminate each argument and store them so they stay alive in memory
             // we can't just take pointers in a loop because the vecs would be dropped

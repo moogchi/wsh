@@ -24,3 +24,16 @@ pub fn read(fd: i32, buf: &mut [u8]) -> i64 {
 pub fn write(fd: i32, buf: &[u8]) -> i64 {
     syscall!(SYS_WRITE, fd as u64, buf.as_ptr() as u64, buf.len() as u64)
 }
+
+pub fn chdir(path: *const u8) -> i64 {
+    syscall!(SYS_CHDIR, path as u64)
+}
+
+pub fn fchdir(fd: i32) -> i64 {
+    syscall!(SYS_FCHDIR, fd as u64)
+}
+
+pub fn getcwd(buf: &mut [u8]) -> *const u8 {
+    let ret = syscall!(SYS_GETCWD, buf.as_mut_ptr() as u64, buf.len() as u64);
+    ret as *const u8
+}

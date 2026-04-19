@@ -6,6 +6,9 @@ pub const SYS_SOCKET: u64 = 41;
 pub const SYS_FORK: u64 = 57;
 pub const SYS_EXECVE: u64 = 59;
 pub const SYS_WAIT4: u64 = 61;
+pub const SYS_GETCWD: u64 = 79;
+pub const SYS_CHDIR: u64 = 80;
+pub const SYS_FCHDIR: u64 = 80;
 pub const SYS_EXIT_GROUP: u64 = 231;
 
 pub const AF_INET: u64 = 2;

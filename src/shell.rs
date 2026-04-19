@@ -7,7 +7,28 @@ use crate::syscall;
 pub fn run() {
     loop {
         // print prompt
-        syscall::print("wsh> ");
+
+        // get the cwd onto the buffer
+        let mut cwd_buf = [0u8; 256];
+        syscall::getcwd(&mut cwd_buf);
+
+        // translate cwd buffer to string.
+        let cwd = unsafe {
+            core::ffi::CStr::from_ptr(cwd_buf.as_ptr() as *const i8)
+                .to_str()
+                .unwrap_or("?")
+        };
+
+        //covert so home is ~
+        let display = if cwd.starts_with("/home/sihoon") {
+            cwd.replacen("/home/sihoon", "~", 1)
+        } else {
+            cwd.to_string()
+        };
+
+        syscall::print("[wsh] ");
+        syscall::print(&display);
+        syscall::print(" » ");
 
         //read input
         let mut buf = [0u8; 256];
