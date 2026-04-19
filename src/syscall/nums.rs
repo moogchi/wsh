@@ -2,6 +2,7 @@
 pub const SYS_READ: u64 = 0;
 pub const SYS_WRITE: u64 = 1;
 pub const SYS_CLOSE: u64 = 3;
+pub const SYS_STAT: u64 = 4;
 pub const SYS_SOCKET: u64 = 41;
 pub const SYS_FORK: u64 = 57;
 pub const SYS_EXECVE: u64 = 59;

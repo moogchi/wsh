@@ -3,6 +3,12 @@
 // call consts
 use crate::syscall::nums::*;
 
+// TODO: define full Stat struct fields when implementing ls -l
+#[repr(C)]
+struct Stat {
+    _pad: [u8; 144],
+}
+
 // fs call defintion
 pub fn print(s: &str) {
     syscall!(SYS_WRITE, 1u64, s.as_ptr() as u64, s.len() as u64);
@@ -36,4 +42,27 @@ pub fn fchdir(fd: i32) -> i64 {
 pub fn getcwd(buf: &mut [u8]) -> *const u8 {
     let ret = syscall!(SYS_GETCWD, buf.as_mut_ptr() as u64, buf.len() as u64);
     ret as *const u8
+}
+
+pub fn stat(path: *const u8) -> i64 {
+    let mut buf = Stat { _pad: [0u8; 144] };
+    syscall!(SYS_STAT, path as u64, &mut buf as *mut Stat as u64)
+}
+
+pub fn find_binary(name: &str) -> Option<String> {
+    let dirs = ["/bin", "/usr/bin", "/usr/local/bin", "/sbin", "/usr/sbin"];
+
+    for dir in dirs.iter() {
+        let full_path = format!("{}/{}", dir, name);
+
+        let mut path_bytes = full_path.as_bytes().to_vec();
+        path_bytes.push(0);
+
+        let ret = stat(path_bytes.as_ptr());
+
+        if ret == 0 {
+            return Some(full_path);
+        }
+    }
+    None
 }
