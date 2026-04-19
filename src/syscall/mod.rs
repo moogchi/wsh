@@ -9,8 +9,10 @@ pub mod fs;
 pub mod net;
 pub mod nums;
 pub mod proc;
+pub mod structs;
 
 pub use fs::*;
 pub use net::*;
 pub use nums::*;
 pub use proc::*;
+pub use structs::*;

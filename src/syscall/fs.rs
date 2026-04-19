@@ -2,12 +2,7 @@
 #![allow(dead_code)]
 // call consts
 use crate::syscall::nums::*;
-
-// TODO: define full Stat struct fields when implementing ls -l
-#[repr(C)]
-struct Stat {
-    _pad: [u8; 144],
-}
+use crate::syscall::structs::Stat;
 
 // fs call defintion
 pub fn print(s: &str) {
