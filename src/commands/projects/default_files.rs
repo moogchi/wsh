@@ -1,4 +1,5 @@
 pub const DEFAULT_CPP_FILE: &str = r#"#include <iostream>
+
 using namespace std;
 int main(){
     cout << "Hello, Wustite!" << endl;
@@ -7,8 +8,9 @@ int main(){
 "#;
 
 pub const DEFAULT_C_FILE: &str = r#"#include <stdio.h>
+
 int main(){
-    println("Hello, Wustite!\n");
+    printf("Hello, Wustite!\n");
     return 0;
 }
 "#;
