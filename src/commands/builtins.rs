@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 
 use super::*;
+use crate::commands::projects::common;
 
 pub fn run(parts: &[&str]) {
     match parts[0] {
@@ -34,54 +35,7 @@ pub fn run(parts: &[&str]) {
             syscall::print("\n");
         }
         _ => {
-            // path finding we need to loop through and find the bin files
-
-            match find_binary(parts[0]) {
-                Some(path) => {
-                    // match string to commands
-
-                    // use path_bytes.as_ptr()
-                    let mut path_bytes = path.into_bytes();
-                    path_bytes.push(b'\0');
-
-                    // null-terminate each argument and store them so they stay alive in memory
-                    // we can't just take pointers in a loop because the vecs would be dropped
-                    // at the end of each iteration, leaving dangling pointers (use-after-free)
-                    let args_cstrings: Vec<Vec<u8>> = parts
-                        .iter()
-                        .map(|arg| {
-                            let mut v = arg.as_bytes().to_vec();
-                            v.push(b'\0');
-                            v
-                        })
-                        .collect();
-
-                    // build argv as an array of pointers into args_cstrings, null terminated
-                    // argv[0] = program name, argv[1..] = arguments, argv[last] = NULL
-                    let mut argv: Vec<*const u8> =
-                        args_cstrings.iter().map(|v| v.as_ptr()).collect();
-                    argv.push(core::ptr::null());
-
-                    let pid = fork();
-
-                    //child process
-                    if pid == 0 {
-                        let env_term = b"TERM=xterm\0";
-                        let envp = [env_term.as_ptr(), core::ptr::null()];
-                        execve(path_bytes.as_ptr(), argv.as_ptr(), envp.as_ptr());
-                        // if we get here the execve has failed
-                        syscall::exit_group(1);
-                    } else if pid > 0 {
-                        // parent process
-                        wait4(pid, core::ptr::null_mut(), 0);
-                    } else if pid < 0 {
-                        syscall::print("Fork Failed \n");
-                    }
-                }
-                None => {
-                    syscall::print("command not found\n");
-                }
-            }
+            common::run_command(parts[0], &parts[1..]);
         }
     }
 }

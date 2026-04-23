@@ -45,7 +45,14 @@ pub fn stat(path: *const u8) -> i64 {
 }
 
 pub fn find_binary(name: &str) -> Option<String> {
-    let dirs = ["/bin", "/usr/bin", "/usr/local/bin", "/sbin", "/usr/sbin"];
+    let dirs = [
+        ".",
+        "/bin",
+        "/usr/bin",
+        "/usr/local/bin",
+        "/sbin",
+        "/usr/sbin",
+    ];
 
     for dir in dirs.iter() {
         let full_path = format!("{}/{}", dir, name);
@@ -60,4 +67,12 @@ pub fn find_binary(name: &str) -> Option<String> {
         }
     }
     None
+}
+
+pub fn mkdir(path: *const u8, mode: u32) -> i64 {
+    syscall!(SYS_MKDIR, path as u64, mode as u64)
+}
+
+pub fn open(path: *const u8, flags: i32, mode: u32) -> i64 {
+    syscall!(SYS_OPEN, path as u64, flags as u64, mode as u64)
 }
