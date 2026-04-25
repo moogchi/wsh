@@ -44,8 +44,62 @@ pub fn stat(path: *const u8) -> i64 {
     syscall!(SYS_STAT, path as u64, &mut buf as *mut Stat as u64)
 }
 
+fn read_env_var(name: &str) -> Option<String> {
+    let fd = open(b"/proc/self/environ\0".as_ptr(), O_RDONLY, 0);
+    if fd < 0 {
+        return None;
+    } // failed to open /proc/self/environ fall back to default dirs
+
+    let mut raw = [0u8; 8192];
+    let n = read(fd as i32, &mut raw);
+    close(fd as i32);
+
+    if n <= 0 {
+        return None;
+    }
+
+    let key = name.as_bytes();
+    for entry in raw[..n as usize].split(|b| *b == 0) {
+        if entry.starts_with(key) && entry.get(key.len()) == Some(&b'=') {
+            let value = &entry[key.len() + 1..];
+            if let Ok(s) = core::str::from_utf8(value) {
+                return Some(s.to_string());
+            }
+        }
+    }
+
+    None
+}
+
 pub fn find_binary(name: &str) -> Option<String> {
-    let dirs = [
+    if name.contains('/') {
+        let mut path_bytes = name.as_bytes().to_vec();
+        path_bytes.push(0);
+
+        if stat(path_bytes.as_ptr()) == 0 {
+            return Some(name.to_string());
+        }
+        return None;
+    }
+
+    let path_env = read_env_var("PATH").unwrap_or_default();
+
+    for dir in path_env.split(':') {
+        let full_path = if dir.is_empty() {
+            format!("./{}", name)
+        } else {
+            format!("{}/{}", dir, name)
+        };
+
+        let mut path_bytes = full_path.as_bytes().to_vec();
+        path_bytes.push(0);
+
+        if stat(path_bytes.as_ptr()) == 0 {
+            return Some(full_path);
+        }
+    }
+
+    let fallback_dirs = [
         ".",
         "/bin",
         "/usr/bin",
@@ -54,15 +108,13 @@ pub fn find_binary(name: &str) -> Option<String> {
         "/usr/sbin",
     ];
 
-    for dir in dirs.iter() {
+    for dir in fallback_dirs.iter() {
         let full_path = format!("{}/{}", dir, name);
 
         let mut path_bytes = full_path.as_bytes().to_vec();
         path_bytes.push(0);
 
-        let ret = stat(path_bytes.as_ptr());
-
-        if ret == 0 {
+        if stat(path_bytes.as_ptr()) == 0 {
             return Some(full_path);
         }
     }

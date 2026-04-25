@@ -14,3 +14,13 @@ int main(){
     return 0;
 }
 "#;
+
+pub const DEFAULT_PYTHON_FILE: &str = r#"
+if __name__ == "__main__":
+    print("Hello, Wustite!");
+"#;
+
+pub const DEFAULT_RUST_FILE: &str = r#"fn main() {
+    println!("Hello, Wustite!");
+}
+"#;

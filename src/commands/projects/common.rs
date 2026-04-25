@@ -13,7 +13,8 @@ use super::python;
 use super::rust;
 
 pub fn setup(parts: &[&str]) {
-    let lang_str = parts[0]; // "cpp" or "python=3.10"
+    let lang_str = parts[1]; // "cpp" or "python=3.10"
+    let project_name = parts[0];
 
     let (lang, version) = if lang_str.contains('=') {
         let mut s = lang_str.splitn(2, '=');
@@ -23,12 +24,12 @@ pub fn setup(parts: &[&str]) {
     };
 
     match lang {
-        "cpp" => cpp::setup(parts, version),
-        "c" => c::setup(parts, version),
-        "python" => python::setup(parts, version),
-        "rust" => rust::setup(parts, version),
-        "java" => java::setup(parts, version),
-        "js" => js::setup(parts, version),
+        "cpp" => cpp::setup(parts, version, project_name),
+        "c" => c::setup(parts, version, project_name),
+        "python" => python::setup(parts, version, project_name),
+        "rust" => rust::setup(parts, version, project_name),
+        "java" => java::setup(parts, version, project_name),
+        "js" => js::setup(parts, version, project_name),
         _ => {
             syscall::print("unsupported language: ");
             syscall::print(lang);
@@ -37,9 +38,12 @@ pub fn setup(parts: &[&str]) {
     }
 }
 
-pub fn write_wshproject(lang: &str, version: &str) {
+pub fn write_wshproject(lang: &str, version: &str, name: &str) {
     // build content based on language and version
-    let content = format!("type = {}\nversion = {}\n", lang, version);
+    let content = format!(
+        "project name = {}\ntype = {}\nversion = {}\n",
+        name, lang, version
+    );
 
     // null terminate the filename
     let filename = b".wshproject\0".to_vec();

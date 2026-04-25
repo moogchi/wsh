@@ -31,6 +31,7 @@
 
 ### Nice To Have
 
+- [ ] setproject python: support specific versions via pyenv
 - [ ] .wshrc config file
 - [ ] prompt.path = full | short | minimal
 - [ ] prompt.show_host

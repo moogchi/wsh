@@ -5,12 +5,12 @@ use super::default_files;
 use crate::syscall;
 use crate::syscall::nums::*;
 
-pub fn setup(parts: &[&str], version: &str) {
+pub fn setup(parts: &[&str], version: &str, name: &str) {
     let std_version = if version.is_empty() { "17" } else { version };
     let default_filename = b"main.cpp\0".to_vec();
     let default_file: &str = default_files::DEFAULT_CPP_FILE;
 
-    common::write_wshproject("cpp", std_version);
+    common::write_wshproject("cpp", std_version, name);
 
     if syscall::stat(default_filename.as_ptr()) == 0 {
         syscall::print("main.cpp already exists, skipping\n");
