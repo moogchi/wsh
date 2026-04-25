@@ -57,18 +57,18 @@ pub fn run(parts: &[&str]) {
                 }
             }
         }
-        "send" => {
+        "sendraw" => {
             if parts.len() < 3 {
-                syscall::print("usage: send <client fd> <msg>\n");
+                syscall::print("usage: sendraw <client fd> <msg>\n");
             } else {
                 let client_fd = parts[1].parse::<i32>().unwrap_or(0);
                 let msg = parts[2..].join(" ");
                 syscall::write(client_fd, msg.as_bytes());
             }
         }
-        "respond" => {
+        "send" => {
             if parts.len() < 2 {
-                syscall::print("usage: respond <client fd> [message]\n");
+                syscall::print("usage: send <client fd> [message]\n");
             } else {
                 let client_fd = parts[1].parse::<i32>().unwrap_or(0);
                 let body = if parts.len() > 2 {
