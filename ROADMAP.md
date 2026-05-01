@@ -27,16 +27,16 @@
 
 ## Core Architecture (NEW)
 
-- [ ] FD table (`HashMap<i32, FdHandle>`)
-- [ ] `FdHandle` struct with `Drop` (auto-close on removal)
-- [ ] `FDEntry` enum:
-  - [ ] File
-  - [ ] Socket
-  - [ ] Pipe
-- [ ] centralized FD lifecycle management
-- [ ] prevent double-close (only close via FD table removal)
-- [ ] shell shutdown cleanup (close all remaining FDs)
-- [ ] exit warning for open FDs
+- [x] FD table (`HashMap<i32, FdHandle>`)
+- [x] `FdHandle` struct with `Drop` (auto-close on removal)
+- [x] `FDEntry` enum:
+  - [x] File
+  - [x] Socket
+  - [x] Pipe
+- [x] centralized FD lifecycle management
+- [x] prevent double-close (only close via FD table removal)
+- [x] shell shutdown cleanup (close all remaining FDs)
+- [x] exit warning for open FDs
 
 ---
 

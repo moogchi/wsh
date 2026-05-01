@@ -1,6 +1,7 @@
 // no warnings even if the function is not used
 #[allow(dead_code)]
 // call consts
+use crate::syscall::fd::{track_fd, update_fd, FdEntry, SocketState};
 use crate::syscall::nums::*;
 use crate::syscall::structs::SockAddrIn;
 use core::mem;
@@ -8,7 +9,16 @@ use core::mem;
 //net call defintion
 pub fn socket(domain: u64, typ: u64, protocol: u64) -> Result<i32, i64> {
     let fd = syscall!(SYS_SOCKET, domain, typ, protocol);
-    if fd < 0 { Err(-fd) } else { Ok(fd as i32) }
+    if fd < 0 {
+        Err(-fd)
+    } else {
+        Ok(track_fd(
+            fd as i32,
+            FdEntry::Socket {
+                state: SocketState::Created,
+            },
+        ))
+    }
 }
 
 fn htons(x: u16) -> u16 {
@@ -34,13 +44,32 @@ pub fn bind(sockfd: i32, port: u16) -> Result<(), i64> {
 
 pub fn listen(sockfd: i32, backlog: i32) -> Result<(), i64> {
     let ret = syscall!(SYS_LISTEN, sockfd as u64, backlog as u64);
-    if ret < 0 { Err(-ret) } else { Ok(()) }
+    if ret < 0 {
+        Err(-ret)
+    } else {
+        let _ = update_fd(
+            sockfd,
+            FdEntry::Socket {
+                state: SocketState::Listening,
+            },
+        );
+        Ok(())
+    }
 }
 
 //TODO: client connection
 pub fn accept(sockfd: i32) -> Result<i32, i64> {
     let fd = syscall!(SYS_ACCEPT, sockfd as u64, 0u64, 0u64);
-    if fd < 0 { Err(-fd) } else { Ok(fd as i32) }
+    if fd < 0 {
+        Err(-fd)
+    } else {
+        Ok(track_fd(
+            fd as i32,
+            FdEntry::Socket {
+                state: SocketState::Connected,
+            },
+        ))
+    }
 }
 
 pub fn setsockopt(sockfd: i32, level: i32, optname: i32, optval: *const i32) -> Result<(), i64> {

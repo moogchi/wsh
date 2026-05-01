@@ -4,6 +4,15 @@
 use crate::commands;
 use crate::syscall;
 
+fn shutdown_shell() {
+    let open_fds = syscall::cleanup_fds();
+    if !open_fds.is_empty() {
+        syscall::print("warning: closing open fds: ");
+        syscall::print(&open_fds.len().to_string());
+        syscall::print("\n");
+    }
+}
+
 pub fn run() {
     loop {
         // print prompt
@@ -45,4 +54,6 @@ pub fn run() {
 
         commands::run(cmd);
     }
+
+    shutdown_shell();
 }

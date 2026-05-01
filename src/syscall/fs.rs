@@ -1,6 +1,7 @@
 // no warnings even if the function is not used
 #![allow(dead_code)]
 // call consts
+use crate::syscall::fd::{close_fd, track_fd, FdEntry};
 use crate::syscall::nums::*;
 use crate::syscall::structs::Stat;
 
@@ -10,7 +11,11 @@ pub fn print(s: &str) {
 }
 
 pub fn close(fd: i32) {
-    syscall!(SYS_CLOSE, fd as u64);
+    let _ = close_fd(fd);
+}
+
+pub(crate) fn close_raw(fd: i32) -> i64 {
+    syscall!(SYS_CLOSE, fd as u64)
 }
 
 pub fn read(fd: i32, buf: &mut [u8]) -> i64 {
@@ -126,5 +131,10 @@ pub fn mkdir(path: *const u8, mode: u32) -> i64 {
 }
 
 pub fn open(path: *const u8, flags: i32, mode: u32) -> i64 {
-    syscall!(SYS_OPEN, path as u64, flags as u64, mode as u64)
+    let fd = syscall!(SYS_OPEN, path as u64, flags as u64, mode as u64);
+    if fd < 0 {
+        fd
+    } else {
+        track_fd(fd as i32, FdEntry::File) as i64
+    }
 }

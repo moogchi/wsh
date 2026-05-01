@@ -28,7 +28,7 @@ pub fn run(parts: &[&str]) {
                 path.push(b'\0');
                 syscall::mkdir(path.as_ptr(), 0o755); // can read write and execute
                 syscall::chdir(path.as_ptr()); //cd into the new folder
-                common::setup(&parts[1..]);
+                common::setup(&parts[2..]);
             }
         }
         "run" => {
