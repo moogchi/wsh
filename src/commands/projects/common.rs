@@ -13,8 +13,16 @@ use super::python;
 use super::rust;
 
 pub fn setup(parts: &[&str]) {
-    let lang_str = parts[1]; // "cpp" or "python=3.10"
-    let project_name = parts[0];
+    let lang_str = parts[0]; // "cpp" or "python=3.10"
+
+    let mut cwd_buf = [0u8; 256];
+    syscall::getcwd(&mut cwd_buf);
+    let cwd = unsafe {
+        core::ffi::CStr::from_ptr(cwd_buf.as_ptr() as *const i8)
+            .to_str()
+            .unwrap_or(".")
+    };
+    let project_name = cwd.rsplit('/').next().unwrap_or(".");
 
     let (lang, version) = if lang_str.contains('=') {
         let mut s = lang_str.splitn(2, '=');
@@ -38,12 +46,9 @@ pub fn setup(parts: &[&str]) {
     }
 }
 
-pub fn write_wshproject(lang: &str, version: &str, name: &str) {
+pub fn write_wshproject(lang: &str, version: &str, _name: &str) {
     // build content based on language and version
-    let content = format!(
-        "project name = {}\ntype = {}\nversion = {}\n",
-        name, lang, version
-    );
+    let content = format!("type = {}\nversion = {}\n", lang, version);
 
     // null terminate the filename
     let filename = b".wshproject\0".to_vec();
@@ -134,23 +139,17 @@ pub fn run_command(program: &str, args: &[&str]) -> i32 {
     let mut path_bytes = path.into_bytes();
     path_bytes.push(b'\0');
 
-    // argv[0] = program name (what user typed)
-    let mut prog_cstring = program.as_bytes().to_vec();
-    prog_cstring.push(b'\0');
-
-    // argv[1..] = args
-    let args_cstrings: Vec<Vec<u8>> = args
-        .iter()
-        .map(|a| {
+        // execve expects argv[0] to be the invoked program name.
+        let mut args_cstrings: Vec<Vec<u8>> = Vec::with_capacity(args.len() + 1);
+        let mut program_name = program.as_bytes().to_vec();
+        program_name.push(b'\0');
+        args_cstrings.push(program_name);
+        args_cstrings.extend(args.iter().map(|a| {
             let mut v = a.as_bytes().to_vec();
             v.push(b'\0');
             v
-        })
-        .collect();
-
-    let mut argv: Vec<*const u8> = Vec::new();
-    argv.push(prog_cstring.as_ptr()); // <-- argv[0]
-    argv.extend(args_cstrings.iter().map(|v| v.as_ptr()));
+        }));
+    let mut argv: Vec<*const u8> = args_cstrings.iter().map(|v| v.as_ptr()).collect();
     argv.push(core::ptr::null());
 
     let (env_storage, envp) = get_envp();
@@ -166,7 +165,6 @@ pub fn run_command(program: &str, args: &[&str]) -> i32 {
         wait4(pid, &mut wstatus as *mut i32, 0);
     }
     let _ = env_storage;
-    let _ = prog_cstring; // keep alive until after wait
     wstatus
 }
 

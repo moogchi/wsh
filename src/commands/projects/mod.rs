@@ -3,7 +3,7 @@
 use crate::syscall;
 
 mod c;
-pub mod common;
+pub mod  common;
 mod cpp;
 mod default_files; // no pub — only projects/ can see it
 mod java;

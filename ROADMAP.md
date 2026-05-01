@@ -21,6 +21,7 @@
 - [x] project-aware touch (starter code per language)
 - [x] project-aware run/compile
 - [x] python venv auto-setup
+- [x] quoted string parsing ("hello world" as one arg)
 
 ---
 
@@ -109,7 +110,6 @@
 
 ## Must Have
 
-- [ ] quoted string parsing ("hello world" as one arg)
 - [ ] pipe support (ls | grep foo)
 - [ ] redirect (> and >>)
 - [ ] up arrow command history
