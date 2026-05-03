@@ -16,6 +16,7 @@ pub fn socket(domain: u64, typ: u64, protocol: u64) -> Result<i32, i64> {
             fd as i32,
             FdEntry::Socket {
                 state: SocketState::Created,
+                parent_fd: None,
             },
         ))
     }
@@ -51,6 +52,7 @@ pub fn listen(sockfd: i32, backlog: i32) -> Result<(), i64> {
             sockfd,
             FdEntry::Socket {
                 state: SocketState::Listening,
+                parent_fd: None,
             },
         );
         Ok(())
@@ -67,6 +69,7 @@ pub fn accept(sockfd: i32) -> Result<i32, i64> {
             fd as i32,
             FdEntry::Socket {
                 state: SocketState::Connected,
+                parent_fd: Some(sockfd),
             },
         ))
     }

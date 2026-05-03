@@ -76,7 +76,7 @@ pub fn run(cmd: &str) {
     }
 
     match parts[0] {
-        "cd" | "pwd" | "echo" | "exit" | "fds" => builtins::run(&parts),
+        "cd" | "pwd" | "echo" | "exit" => builtins::run(&parts),
         "opensocket" | "accept" | "send" | "respond" | "closesocket" => socket::run(&parts),
         "setproject" | "openproject" | "run" => projects::run(&parts),
         _ => builtins::run(&parts),

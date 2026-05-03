@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
 use crate::syscall::fs::close_raw;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::sync::{Mutex, OnceLock};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -14,7 +14,10 @@ pub enum SocketState {
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum FdEntry {
     File,
-    Socket { state: SocketState },
+    Socket {
+        state: SocketState,
+        parent_fd: Option<i32>,
+    },
     Pipe,
 }
 
@@ -24,12 +27,15 @@ impl FdEntry {
             Self::File => "file",
             Self::Socket {
                 state: SocketState::Created,
+                ..
             } => "socket(created)",
             Self::Socket {
                 state: SocketState::Listening,
+                ..
             } => "socket(listening)",
             Self::Socket {
                 state: SocketState::Connected,
+                ..
             } => "socket(connected)",
             Self::Pipe => "pipe",
         }
@@ -117,6 +123,49 @@ pub fn close_fd(fd: i32) -> bool {
     } else {
         false
     }
+}
+
+pub fn close_socket_cascade(fd: i32) -> Vec<i32> {
+    let (closed_fds, handles) = {
+        let mut table = table().lock().unwrap();
+
+        if !table.entries.contains_key(&fd) {
+            return Vec::new();
+        }
+
+        let mut seen = HashSet::new();
+        let mut stack = vec![fd];
+        let mut closed_fds = Vec::new();
+
+        while let Some(current_fd) = stack.pop() {
+            if !seen.insert(current_fd) {
+                continue;
+            }
+            closed_fds.push(current_fd);
+
+            for (entry_fd, handle) in table.entries.iter() {
+                if let FdEntry::Socket {
+                    parent_fd: Some(parent_fd),
+                    ..
+                } = handle.entry()
+                {
+                    if parent_fd == current_fd {
+                        stack.push(*entry_fd);
+                    }
+                }
+            }
+        }
+
+        let handles = closed_fds
+            .iter()
+            .filter_map(|entry_fd| table.entries.remove(entry_fd))
+            .collect::<Vec<_>>();
+
+        (closed_fds, handles)
+    };
+
+    drop(handles);
+    closed_fds
 }
 
 pub fn tracked_fds() -> Vec<(i32, FdEntry)> {
