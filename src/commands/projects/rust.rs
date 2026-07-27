@@ -35,7 +35,7 @@ pub fn setup(_parts: &[&str], _version: &str, name: &str) {
     syscall::print("rust project has been created\n");
 }
 
-pub fn run(content: &str, parts: &[&str]) {
+pub fn run(_content: &str, parts: &[&str]) {
     let fmt_status = common::run_command("cargo", &["fmt"]);
 
     //check fmt
@@ -52,6 +52,15 @@ pub fn run(content: &str, parts: &[&str]) {
         return;
     }
 
+    // need parts
+    let mut args = vec!["run"];
+
+    if parts.len()>1{
+        args.push("--");
+        args.extend_from_slice(&parts[1..]);
+    }
+    
+
     // now run
-    common::run_command("cargo", &["run"]);
+    common::run_command("cargo", &args);
 }
