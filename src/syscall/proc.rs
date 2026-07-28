@@ -6,7 +6,7 @@ use crate::syscall::nums::*;
 //proc call defintion
 pub fn exit_group(status: i64) -> ! {
     syscall!(SYS_EXIT_GROUP, status);
-    loop {}
+    unreachable!("exit_group syscall does not return")
 }
 
 pub fn fork() -> i32 {

@@ -55,11 +55,10 @@ pub fn run(_content: &str, parts: &[&str]) {
     // need parts
     let mut args = vec!["run"];
 
-    if parts.len()>1{
+    if parts.len() > 1 {
         args.push("--");
         args.extend_from_slice(&parts[1..]);
     }
-    
 
     // now run
     common::run_command("cargo", &args);

@@ -1,7 +1,7 @@
 // no warnings even if the function is not used
 #[allow(dead_code)]
 // call consts
-use crate::syscall::fd::{track_fd, update_fd, FdEntry, SocketState};
+use crate::syscall::fd::{FdEntry, SocketState, track_fd, update_fd};
 use crate::syscall::nums::*;
 use crate::syscall::structs::SockAddrIn;
 use core::mem;

@@ -85,12 +85,12 @@ pub fn run_project(parts: &[&str]) {
                 .unwrap_or("");
 
             match project_type {
-                "cpp" => cpp::run(&content, &parts),
-                "c" => c::run(&content, &parts),
-                "python" => python::run(&content, &parts),
-                "rust" => rust::run(&content, &parts),
-                "java" => java::run(&content, &parts),
-                "js" => js::run(&content, &parts),
+                "cpp" => cpp::run(&content, parts),
+                "c" => c::run(&content, parts),
+                "python" => python::run(&content, parts),
+                "rust" => rust::run(&content, parts),
+                "java" => java::run(&content, parts),
+                "js" => js::run(&content, parts),
                 _ => {
                     syscall::print("unknown project type\n");
                 }
@@ -139,16 +139,16 @@ pub fn run_command(program: &str, args: &[&str]) -> i32 {
     let mut path_bytes = path.into_bytes();
     path_bytes.push(b'\0');
 
-        // execve expects argv[0] to be the invoked program name.
-        let mut args_cstrings: Vec<Vec<u8>> = Vec::with_capacity(args.len() + 1);
-        let mut program_name = program.as_bytes().to_vec();
-        program_name.push(b'\0');
-        args_cstrings.push(program_name);
-        args_cstrings.extend(args.iter().map(|a| {
-            let mut v = a.as_bytes().to_vec();
-            v.push(b'\0');
-            v
-        }));
+    // execve expects argv[0] to be the invoked program name.
+    let mut args_cstrings: Vec<Vec<u8>> = Vec::with_capacity(args.len() + 1);
+    let mut program_name = program.as_bytes().to_vec();
+    program_name.push(b'\0');
+    args_cstrings.push(program_name);
+    args_cstrings.extend(args.iter().map(|a| {
+        let mut v = a.as_bytes().to_vec();
+        v.push(b'\0');
+        v
+    }));
     let mut argv: Vec<*const u8> = args_cstrings.iter().map(|v| v.as_ptr()).collect();
     argv.push(core::ptr::null());
 
@@ -169,7 +169,7 @@ pub fn run_command(program: &str, args: &[&str]) -> i32 {
 }
 
 pub fn get_envp() -> (Vec<Vec<u8>>, Vec<*const u8>) {
-    let fd = syscall::open(b"/proc/self/environ\0".as_ptr(), O_RDONLY, 0);
+    let fd = syscall::open(c"/proc/self/environ".as_ptr() as *const u8, O_RDONLY, 0);
     let mut raw = [0u8; 8192];
     let n = syscall::read(fd as i32, &mut raw);
     syscall::close(fd as i32);

@@ -148,10 +148,9 @@ pub fn close_socket_cascade(fd: i32) -> Vec<i32> {
                     parent_fd: Some(parent_fd),
                     ..
                 } = handle.entry()
+                    && parent_fd == current_fd
                 {
-                    if parent_fd == current_fd {
-                        stack.push(*entry_fd);
-                    }
+                    stack.push(*entry_fd);
                 }
             }
         }
@@ -180,7 +179,11 @@ pub fn tracked_fds() -> Vec<(i32, FdEntry)> {
 pub fn cleanup_fds() -> Vec<(i32, FdEntry)> {
     let handles = {
         let mut table = table().lock().unwrap();
-        table.entries.drain().map(|(_, handle)| handle).collect::<Vec<_>>()
+        table
+            .entries
+            .drain()
+            .map(|(_, handle)| handle)
+            .collect::<Vec<_>>()
     };
 
     let snapshot = handles

@@ -1,7 +1,7 @@
 // no warnings even if the function is not used
 #![allow(dead_code)]
 // call consts
-use crate::syscall::fd::{close_fd, track_fd, FdEntry};
+use crate::syscall::fd::{FdEntry, close_fd, track_fd};
 use crate::syscall::nums::*;
 use crate::syscall::structs::Stat;
 
@@ -50,7 +50,7 @@ pub fn stat(path: *const u8) -> i64 {
 }
 
 fn read_env_var(name: &str) -> Option<String> {
-    let fd = open(b"/proc/self/environ\0".as_ptr(), O_RDONLY, 0);
+    let fd = open(c"/proc/self/environ".as_ptr() as *const u8, O_RDONLY, 0);
     if fd < 0 {
         return None;
     } // failed to open /proc/self/environ fall back to default dirs
@@ -124,6 +124,34 @@ pub fn find_binary(name: &str) -> Option<String> {
         }
     }
     None
+}
+
+pub fn pipe() -> Result<(i32, i32), i64> {
+    let mut fds: [i32; 2] = [0, 0];
+    let ret = syscall!(SYS_PIPE, fds.as_mut_ptr() as u64);
+    if ret < 0 {
+        return Err(ret);
+    }
+
+    let read_fd = track_fd(fds[0], FdEntry::Pipe);
+    let write_fd = track_fd(fds[1], FdEntry::Pipe);
+    Ok((read_fd, write_fd))
+}
+
+pub fn pipe2(flags: i32) -> Result<(i32, i32), i64> {
+    let mut fds: [i32; 2] = [0, 0];
+    let ret = syscall!(SYS_PIPE2, fds.as_mut_ptr() as u64, flags as u64);
+    if ret < 0 {
+        return Err(ret);
+    }
+
+    let read_fd = track_fd(fds[0], FdEntry::Pipe);
+    let write_fd = track_fd(fds[1], FdEntry::Pipe);
+    Ok((read_fd, write_fd))
+}
+
+pub fn dup2(oldfd: i32, newfd: i32) -> i64 {
+    syscall!(SYS_DUP2, oldfd as u64, newfd as u64)
 }
 
 pub fn mkdir(path: *const u8, mode: u32) -> i64 {
