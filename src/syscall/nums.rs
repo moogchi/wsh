@@ -4,7 +4,9 @@ pub const SYS_WRITE: u64 = 1;
 pub const SYS_OPEN: u64 = 2;
 pub const SYS_CLOSE: u64 = 3;
 pub const SYS_STAT: u64 = 4;
+pub const SYS_DUP2: u64 = 33;
 pub const SYS_SOCKET: u64 = 41;
+pub const SYS_PIPE: u64 = 22;
 pub const SYS_ACCEPT: u64 = 43;
 pub const SYS_BIND: u64 = 49;
 pub const SYS_LISTEN: u64 = 50;
@@ -17,6 +19,7 @@ pub const SYS_CHDIR: u64 = 80;
 pub const SYS_FCHDIR: u64 = 80;
 pub const SYS_MKDIR: u64 = 83;
 pub const SYS_EXIT_GROUP: u64 = 231;
+pub const SYS_PIPE2: u64 = 293;
 
 pub const AF_INET: u64 = 2;
 pub const SOCK_STREAM: u64 = 1;

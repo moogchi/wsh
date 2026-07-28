@@ -5,7 +5,7 @@ use super::default_files;
 use crate::syscall;
 use crate::syscall::nums::*;
 
-pub fn setup(parts: &[&str], version: &str, name: &str) {
+pub fn setup(_parts: &[&str], version: &str, name: &str) {
     let std_version = if version.is_empty() { "17" } else { version };
     let default_filename = b"main.cpp\0".to_vec();
     let default_file: &str = default_files::DEFAULT_CPP_FILE;

@@ -141,7 +141,9 @@ pub fn run(parts: &[&str]) {
                 }
 
                 let Some(client_fd) = client_fd else {
-                    syscall::print("usage: send [-c|--close|-k|--keep-open] <client fd> [message]\n");
+                    syscall::print(
+                        "usage: send [-c|--close|-k|--keep-open] <client fd> [message]\n",
+                    );
                     return;
                 };
 

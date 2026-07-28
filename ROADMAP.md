@@ -9,6 +9,7 @@
 - [x] raw syscall macro (all 6 arities, inline asm)
 - [x] socket, read, write, close, print
 - [x] fork, execve, wait4, exit_group
+- [x] pipe, pipe2, dup2
 - [x] shell loop with custom prompt
 - [x] ~ substitution in prompt
 - [x] cd, pwd, echo built-ins
@@ -42,10 +43,10 @@
 
 ## FD / Dev Observability
 
-- [ ] `fds` command (list all open FDs)
-- [ ] `fds <fd>` (detailed info)
-- [ ] FD table pretty print (type, state, metadata)
-- [ ] socket state tracking (LISTENING / CONNECTED)
+- [x] `fds` command (list all open FDs)
+- [x] `fds <fd>` (detailed info)
+- [ ] FD table pretty print (type, state, metadata) — labels show type/state, still no rich metadata columns
+- [x] socket state tracking (LISTENING / CONNECTED)
 - [ ] peer/local address display for sockets
 - [ ] optional: `watch fds` (print updates on change)
 
@@ -56,8 +57,8 @@
 - [ ] unify I/O around `read` / `write`
 - [ ] rename:
   - [ ] `send` → `write`
-  - [ ] `respond` → HTTP helper (not core I/O)
-- [ ] `writehex` or `writeraw` for binary data
+  - [x] `respond` → HTTP helper (not core I/O) — now an alias of `send`, distinct from raw `sendraw`
+- [ ] `writehex` or `writeraw` for binary data (socket-side `sendraw` exists; no generic file/fd equivalent yet)
 - [ ] consistent interface across:
   - [ ] files
   - [ ] sockets
@@ -67,14 +68,13 @@
 
 ## Socket System Improvements
 
-- [ ] track socket metadata in FD table
-- [ ] `bind <fd> <ip:port>`
-- [ ] `listen <fd> <backlog>`
-- [ ] `accept` returns tracked FD with metadata
-- [ ] unify `closesocket` → `close`
-- [ ] HTTP helper:
-  - [ ] `respond <fd> "body"` sends valid HTTP/1.1 response
-- [ ] improved error handling (port in use, invalid FD, etc.)
+- [x] track socket metadata in FD table (parent_fd for listener→client cascade)
+- [x] `bind`/`listen` wired into `opensocket` (no standalone `bind`/`listen` commands yet)
+- [x] `accept` returns tracked FD (state = Connected, parent_fd set)
+- [ ] unify `closesocket` → `close` (still separate command; `closesocket -c` does cascade close)
+- [x] HTTP helper:
+  - [x] `respond <fd> "body"` / `send <fd> "body"` sends valid HTTP/1.1 response (with `-c`/`-k` connection control, `sendraw` for raw bytes)
+- [x] improved error handling (setsockopt/bind/listen failures reported, short/failed writes auto-close + report on socket disconnect)
 
 ---
 
@@ -110,7 +110,7 @@
 
 ## Must Have
 
-- [ ] pipe support (ls | grep foo)
+- [x] pipe support (ls | grep foo) — `pipe`/`dup2` syscalls + per-stage fork in `commands::run_pipeline`
 - [ ] redirect (> and >>)
 - [ ] up arrow command history
 - [ ] multiline commands (backslash at end of line)
@@ -130,10 +130,10 @@
 
 ## Project System
 
-- [ ] `.wshproject` config file (python env, cpp split into src header)
-- [ ] custom run/build commands per project
+- [x] `.wshproject` config file (type + version, written/read per project)
+- [x] custom run/build commands per project (per-language `run()` in `projects/*.rs`)
 - [ ] project env variables
-- [ ] auto-detect project type
+- [x] auto-detect project type (`run` reads `.wshproject` type to dispatch)
 - [ ] project-specific dependencies
 
 ---
@@ -203,7 +203,7 @@
 
 ## Stretch Goals
 
-- [ ] pipe syscall integration into shell pipes
+- [x] pipe syscall integration into shell pipes
 - [ ] `select` / `poll` for multiple sockets
 - [ ] interactive syscall REPL
 - [ ] record/replay syscall sessions
